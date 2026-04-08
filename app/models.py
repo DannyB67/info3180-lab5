@@ -16,3 +16,10 @@ class Movie(db.Model):
 
     def __repr__(self):
         return f"<Movie {self.title}>"
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "poster": self.poster
+        }

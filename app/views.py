@@ -8,8 +8,9 @@ This file creates your application.
 from app import app, db
 from app.models import Movie
 from app.forms import MovieForm
-from flask import render_template, request, jsonify, send_file
+from flask import render_template, request, jsonify, send_file, send_from_directory
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import generate_csrf
 import os
 
 
@@ -36,13 +37,30 @@ def movies():
         poster_file.save(poster_path)
 
         # Create a new Movie instance and save it to the database
-        new_movie = Movie(title=title, description=description, poster=poster_filename)
+        new_movie = Movie(title=title, description=description, poster=poster_path)
         db.session.add(new_movie)
         db.session.commit()
 
-        return jsonify(message="Movie created successfully", movie_id=new_movie.id), 201
+        return jsonify(message="Movie created successfully", movie_id=new_movie.id, title=new_movie.title, description=new_movie.description), 201
     else:
         return jsonify(errors=form_errors(form)), 400
+
+@app.route('/api/v1/csrf-token', methods=['GET']) 
+def get_csrf(): 
+    return jsonify({'csrf_token': generate_csrf()}) 
+
+@app.route('/api/v1/movies', methods=['GET'])
+def get_movies():
+    movies = Movie.query.all()
+    return jsonify([movie.to_dict() for movie in movies])
+
+@app.route('/api/v1/poster/<filename>')
+def get_poster(filename):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 500
+
 ###
 # The functions below should be applicable to all Flask apps.
 ###
