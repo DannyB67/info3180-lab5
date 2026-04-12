@@ -1,6 +1,12 @@
 <template>
     <div class="container">
         <h1>Add a New Movie</h1>
+        <div v-if="successMessage" class="alert alert-success" role="alert">
+            {{ successMessage }}
+        </div>
+        <div v-if="errorMessage" class="alert alert-danger" role="alert">
+            {{ errorMessage }}
+        </div>
         <form @submit.prevent="saveMovie" id="movieForm" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
@@ -29,6 +35,8 @@ let csrf_token = ref("");
 const title = ref("");
 const description = ref("");    
 const posterFile = ref(null);
+const successMessage = ref("");
+const errorMessage = ref("");
 
 
 function getCsrfToken() { 
@@ -59,14 +67,17 @@ let form_data = new FormData(movieForm);
             return response.json();
         })
         .then(function (data) {
-            console.log("Movie created successfully:", data);
-            // Optionally, reset the form fields here
+            //console.log("Movie created successfully:", data);
+            successMessage.value = data.message;
+            errorMessage.value = "";
             title.value = "";
             description.value = "";
             posterFile.value = null;
         })
         .catch (function(error) {
             console.error("Error submitting form:", error);
+            errorMessage.value = "Error submitting form. Please try again.";
+            successMessage.value = "";
         });
 }
 </script>
